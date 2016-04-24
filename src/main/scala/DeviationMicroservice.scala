@@ -45,16 +45,17 @@ trait Service extends Protocols {
 
   def round(x: Double, n: Int) = ((x * math.pow(10,n) + 0.5).floor / math.pow(10,n))
 
-  lazy val closeStopsConnectionFlow: Flow[HttpRequest, HttpResponse, Any] =
+  lazy val connectionFlow: Flow[HttpRequest, HttpResponse, Any] =
     Http().outgoingConnection(config.getString("services.sl.server"),
       config.getInt("services.sl.port"))
 
-  def closeStopsRequest(request: HttpRequest): Future[HttpResponse] =
-    Source.single(request).via(closeStopsConnectionFlow).runWith(Sink.head)
+  def httpRequest(request: HttpRequest): Future[HttpResponse] = {
+    logger.info(s"Requesting ${request.uri}")
+    Source.single(request).via(connectionFlow).runWith(Sink.head)
+  }
 
   def fetchCloseStops(coord: Coordinate): Future[Either[String, Array[StopLocation]]] = {
-    closeStopsRequest(
-      RequestBuilding.Get(
+    httpRequest(RequestBuilding.Get(
         s"/api2/nearbystops.json?key=${key}&originCoordLat=${coord.lat}&originCoordLong=${coord.long}"))
       .flatMap { response =>
       response.status match {
@@ -72,16 +73,16 @@ trait Service extends Protocols {
     }
   }
 
+  def calculateDeviation(coord: Coordinate): ToResponseMarshallable =
+    fetchCloseStops(coord).map[ToResponseMarshallable] {
+      case Right(stopLocation) => stopLocation
+      case Left(errorMessage) => BadRequest -> errorMessage
+    }
+
   def argumentToCoordinate(s: String): Either[String, Coordinate] =
     s.split(",") match {
       case Array(f1, f2) => Right(Coordinate.tupled((round(f1.toDouble,4), round(f2.toDouble, 4))))
       case _  => Left(s"Incorrect coordinate $s")
-    }
-
-  def fetchDeviation(coord: Coordinate): ToResponseMarshallable =
-    fetchCloseStops(coord).map[ToResponseMarshallable] {
-      case Right(stopLocation) => stopLocation
-      case Left(errorMessage) => BadRequest -> errorMessage
     }
 
   val routes = {
@@ -91,7 +92,7 @@ trait Service extends Protocols {
           complete {
             argumentToCoordinate(arg).fold(
               error => BadRequest -> error,
-              success => fetchDeviation(success)
+              success => calculateDeviation(success)
             )
           }
         }
