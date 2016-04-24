@@ -3,7 +3,7 @@
 Service that takes coordinates and return disruption in Stockholms
 commute service close to the location.
 
-You need your own API key from [Trafiklab](https://trafiklab.se)
+You need your own API key for the nearbystops service from [Trafiklab](https://trafiklab.se)
 
 ## Run
 

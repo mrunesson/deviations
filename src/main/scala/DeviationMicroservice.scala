@@ -53,13 +53,16 @@ trait Service extends Protocols {
   def closeStopsRequest(request: HttpRequest): Future[HttpResponse] =
     Source.single(request).via(closeStopsConnectionFlow).runWith(Sink.head)
 
-  def fetchCloseStops(coord: Coordinate): Future[Either[String, NearestLocation]] = {
+  def fetchCloseStops(coord: Coordinate): Future[Either[String, Array[StopLocation]]] = {
     closeStopsRequest(
       RequestBuilding.Get(
         s"/api2/nearbystops.json?key=${key}&originCoordLat=${coord.lat}&originCoordLong=${coord.long}"))
       .flatMap { response =>
       response.status match {
-        case OK => Unmarshal(response.entity).to[NearestLocation].map(Right(_))
+        case OK => Unmarshal(response.entity).to[NearestLocation].map(_.LocationList match {
+          case Some(locationList) => Right(locationList.StopLocation)
+          case None => Left("SL cannot HTTP codes.")
+        })
         case BadRequest => Future.successful(Left(s"$coord: incorrect Coordinates"))
         case _ => Unmarshal(response.entity).to[String].flatMap { entity =>
           val error = s"SL nearbystops API request failed with status code ${response.status} and entity $entity"
@@ -80,12 +83,7 @@ trait Service extends Protocols {
 
   def fetchDeviation(coord: Coordinate): ToResponseMarshallable = {
     fetchCloseStops(coord).map[ToResponseMarshallable] {
-      case Right(nearestLocation) => {
-        nearestLocation.LocationList match {
-          case Some(locaionList) => locaionList.StopLocation
-          case None => BadRequest -> "SL cannot HTTP codes."
-        }
-      }
+      case Right(stopLocation) => stopLocation
       case Left(errorMessage) => BadRequest -> errorMessage
     }
   }
