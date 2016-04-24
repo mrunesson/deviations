@@ -7,7 +7,7 @@ You need your own API key for the nearbystops service from [Trafiklab](https://t
 
 ## Run
 
-sbt -Dservices.sl.key="YOUR KEY" run
+sbt -Dservices.nearbystops.key="YOUR KEY" run
 
 ## Author & license
 

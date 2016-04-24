@@ -39,7 +39,7 @@ trait Service extends Protocols {
   implicit val materializer: Materializer
 
   def config: Config
-  lazy val key = config.getString("services.sl.key")
+  lazy val key = config.getString("services.nearbystops.key")
 
   val logger: LoggingAdapter
 
@@ -48,7 +48,6 @@ trait Service extends Protocols {
   lazy val closeStopsConnectionFlow: Flow[HttpRequest, HttpResponse, Any] =
     Http().outgoingConnection(config.getString("services.sl.server"),
       config.getInt("services.sl.port"))
-
 
   def closeStopsRequest(request: HttpRequest): Future[HttpResponse] =
     Source.single(request).via(closeStopsConnectionFlow).runWith(Sink.head)
@@ -73,20 +72,17 @@ trait Service extends Protocols {
     }
   }
 
-
-  def argumentToCoordinate(s: String): Either[String, Coordinate] = {
+  def argumentToCoordinate(s: String): Either[String, Coordinate] =
     s.split(",") match {
       case Array(f1, f2) => Right(Coordinate.tupled((round(f1.toDouble,4), round(f2.toDouble, 4))))
       case _  => Left(s"Incorrect coordinate $s")
     }
-  }
 
-  def fetchDeviation(coord: Coordinate): ToResponseMarshallable = {
+  def fetchDeviation(coord: Coordinate): ToResponseMarshallable =
     fetchCloseStops(coord).map[ToResponseMarshallable] {
       case Right(stopLocation) => stopLocation
       case Left(errorMessage) => BadRequest -> errorMessage
     }
-  }
 
   val routes = {
     logRequestResult("deviation-microservice") {
