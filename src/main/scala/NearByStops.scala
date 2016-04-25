@@ -11,13 +11,17 @@ object NearByStops {
   val config = ConfigFactory.load()
   lazy val key = config.getString("services.nearbystops.key")
 
-  def getRequest(coord: Coordinate): HttpRequest = RequestBuilding.Get(
-    s"/api2/nearbystops.json?key=${key}&originCoordLat=${coord.lat}&originCoordLong=${coord.long}")
+  def getRequest(coord: Coordinate): HttpRequest =
+    RequestBuilding.Get(
+      s"/api2/nearbystops.json?key=${key}&originCoordLat=${coord.lat}&originCoordLong=${coord.long}")
 
-  def getStopLocation(nearestLocation: NearestLocation): Either[String, Array[StopLocation]] =
+  def getStopLocation(nearestLocation: NearestLocation): Array[StopLocation] =
     nearestLocation.LocationList match {
-      case Some(locationList) => Right(locationList.StopLocation)
-      case None => Left("SL cannot HTTP codes, this was not a guilty request.")
+      case Some(locationList) => locationList.StopLocation
+      case None => throw new HttpResponseException(Option.empty,
+        "SL cannot HTTP codes, this was not a guilty request.")
     }
+
+  def getSiteId(stopLocation: StopLocation): String = stopLocation.id takeRight 4
 
 }

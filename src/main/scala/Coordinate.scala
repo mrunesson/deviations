@@ -9,3 +9,5 @@ object Coordinate {
       s"Incorrect coordinate $coordinate, it must be two decimal numbers separated by comma(,)")
   }
 }
+
+case class CoordinateException(msg: String) extends Exception(msg)
