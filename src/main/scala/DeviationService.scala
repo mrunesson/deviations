@@ -66,7 +66,8 @@ trait Service extends Protocols {
           case OK => Unmarshal(response.entity).to[NearestLocation].map(NearByStops.getStopLocation(_))
           case BadRequest => throw new CoordinateException(s"$coord: incorrect Coordinates")
           case _ => Unmarshal(response.entity).to[String].flatMap { entity =>
-            val error = s"SL nearbystops API request failed with status code ${response.status} and entity ${entity}"
+            val error = s"SL nearbystops API request failed with status code ${response.status} " +
+              s"and entity ${entity}"
             logger.error(error)
             throw new HttpResponseException(Option(response), error)
           }
@@ -96,24 +97,21 @@ trait Service extends Protocols {
     }).flatMap(x => Future(x.toSet.toArray))
   }
 
-  def calculateDeviation(coord: Coordinate): ToResponseMarshallable = {
+  def calculateDeviation(coord: Coordinate): ToResponseMarshallable =
     fetchNearByStops(coord) flatMap {
       fetchDeviations(_)
     }
-  }
 
   val routes =
     logRequestResult("deviation-service") {
       pathPrefix("deviation") {
         (get & path(Segment)) { arg =>
-          encodeResponseWith(Gzip) {
           complete {
             try {
               calculateDeviation(Coordinate(arg))
             } catch {
               case ex: IllegalArgumentException => BadRequest -> ex.getMessage
             }
-          }
           }
         }
       }
