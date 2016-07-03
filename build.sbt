@@ -1,5 +1,3 @@
-enablePlugins(JavaAppPackaging)
-
 name := "deviation"
 organization := "org.linuxalert"
 version := "1.0"
@@ -19,5 +17,3 @@ libraryDependencies ++= {
     "org.scalatest"     %% "scalatest" % scalaTestV % "test"
   )
 }
-
-Revolver.settings
