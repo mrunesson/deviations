@@ -3,20 +3,24 @@
 Service that takes coordinates and return disruption in Stockholms
 commute service close to the location.
 
-You need your own API key for the nearbystops service from [Trafiklab](https://trafiklab.se)
+You need your own API key for the nearbystops and deviations(v2) service from [Trafiklab](https://trafiklab.se)
 
 ## Run
 
 ### With docker
 
+```
 ./docker-build.sh
 export $NEARBYSTOPS="YOUR KEY"
 export $DEVIATIONS="YOUR OTHER KEY"
 ./docker-run.sh
+```
 
 ### With sbt
 
+```
 ./sbt -Dservices.nearbystops.key="YOUR KEY" -Dservices.deviations.key="YOUR OTHER KEY" run
+```
 
 ## Author & license
 
