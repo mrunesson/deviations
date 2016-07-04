@@ -10,6 +10,7 @@ case class Deviation(Created: OffsetDateTime,
                      Header: String,
                      Details: String,
                      Scope: String,
+                     ScopeElements: String,
                      FromDateTime: String,
                      UpToDateTime: String,
                      Updated: OffsetDateTime)

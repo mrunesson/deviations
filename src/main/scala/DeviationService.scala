@@ -37,7 +37,7 @@ trait Protocols extends DefaultJsonProtocol {
   implicit val stopLocationFormat = jsonFormat6(StopLocation.apply)
   implicit val locationListFormat = jsonFormat2(LocationList.apply)
   implicit val nearestLocationFormat = jsonFormat1(NearestLocation.apply)
-  implicit val deviationFormat = jsonFormat8(Deviation.apply)
+  implicit val deviationFormat = jsonFormat9(Deviation.apply)
   implicit val deviationsFormat = jsonFormat3(Deviations.apply)
 }
 
